@@ -51,12 +51,23 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-ncurses
             make
+            git
 
-      - name: Build (Windows x86_64)
+      - name: Build PDCurses from source (Windows x86_64)
         if: matrix.target == 'windows-x86_64'
         shell: msys2 {0}
         run: |
-          make clean
-          make TARGET=game.exe
+          git clone --depth 1 https://github.com/wmcbrine/PDCurses.git pdcurses-src
+          cd pdcurses-src/wincon
+          make DLL=N WIDE=Y UTF8=Y
+
+      - name: Build game (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        shell: msys2 {0}
+        run: |
+          g++ -std=c++20 -O2 -Wall \
+            -DPDC_WIDE -DPDC_FORCE_UTF8 \
+            -Ipdcurses-src \
+            main.cpp -o game.exe \
+            pdcurses-src/wincon/pdcurses.a

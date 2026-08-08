@@ -69,7 +69,7 @@ jobs:
           tar -czvf game-macos-universal.tar.gz game
 
       # ------------------------------------------------------------------------
-      # Windows x86_64 Build (using MSYS2 & MinGW-w64 ncurses)
+      # Windows x86_64 Build (build PDCurses from source for reliability)
       # ------------------------------------------------------------------------
       - name: Setup MSYS2 (Windows x86_64)
         if: matrix.target == 'windows-x86_64'
@@ -79,16 +79,28 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-ncurses
             make
+            git
             zip
 
-      - name: Build (Windows x86_64)
+      - name: Build PDCurses from source (Windows x86_64)
         if: matrix.target == 'windows-x86_64'
         shell: msys2 {0}
         run: |
-          make clean
-          make TARGET=game.exe CXXFLAGS="-std=c++20 -O2 -Wall -DNCURSES_STATIC -static-libgcc -static-libstdc++"
+          git clone --depth 1 https://github.com/wmcbrine/PDCurses.git pdcurses-src
+          cd pdcurses-src/wincon
+          make DLL=N WIDE=Y UTF8=Y
+
+      - name: Build game (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        shell: msys2 {0}
+        run: |
+          g++ -std=c++20 -O2 -Wall \
+            -DPDC_WIDE -DPDC_FORCE_UTF8 \
+            -Ipdcurses-src \
+            main.cpp -o game.exe \
+            pdcurses-src/wincon/pdcurses.a \
+            -static-libgcc -static-libstdc++
           zip game-windows-x86_64.zip game.exe
 
       # ------------------------------------------------------------------------
