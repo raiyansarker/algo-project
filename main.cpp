@@ -6,10 +6,17 @@
 #include <algorithm>
 #include <ctime>
 
-#ifdef _WIN32
-#  include <curses.h>
-#else
+// Portable curses header selection
+#if __has_include(<ncurses.h>)
 #  include <ncurses.h>
+#elif __has_include(<curses.h>)
+#  include <curses.h>
+#elif __has_include(<pdcurses/curses.h>)
+#  include <pdcurses/curses.h>
+#elif __has_include(<ncurses/ncurses.h>)
+#  include <ncurses/ncurses.h>
+#else
+#  error "No curses header found! Please install ncurses or pdcurses development packages."
 #endif
 
 using namespace std;

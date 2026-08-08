@@ -4,6 +4,8 @@ SRC = main.cpp
 
 ifeq ($(OS),Windows_NT)
     TARGET ?= game.exe
+    PDC_CFLAGS := $(shell pkg-config --cflags pdcurses 2>/dev/null)
+    CXXFLAGS += $(PDC_CFLAGS)
     LDLIBS ?= -lpdcurses
 else
     TARGET ?= game
