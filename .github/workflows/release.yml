@@ -1,0 +1,153 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0-draft'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            os: ubuntu-latest
+            artifact_name: game-linux-x86_64.tar.gz
+            asset_path: game-linux-x86_64.tar.gz
+
+          - target: linux-arm64
+            os: ubuntu-latest
+            artifact_name: game-linux-arm64.tar.gz
+            asset_path: game-linux-arm64.tar.gz
+
+          - target: macos-universal
+            os: macos-latest
+            artifact_name: game-macos-universal.tar.gz
+            asset_path: game-macos-universal.tar.gz
+
+          - target: windows-x86_64
+            os: windows-latest
+            artifact_name: game-windows-x86_64.zip
+            asset_path: game-windows-x86_64.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------------
+      # Linux x86_64 Build
+      # ------------------------------------------------------------------------
+      - name: Install dependencies (Linux x86_64)
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev libncursesw5-dev
+
+      - name: Build (Linux x86_64)
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          make clean
+          make CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++" TARGET=game
+          tar -czvf game-linux-x86_64.tar.gz game
+
+      # ------------------------------------------------------------------------
+      # Linux ARM64 Cross-Compilation Build
+      # ------------------------------------------------------------------------
+      - name: Install dependencies (Linux ARM64 Cross-Compile)
+        if: matrix.target == 'linux-arm64'
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libncurses-dev:arm64 libncursesw5-dev:arm64
+
+      - name: Build (Linux ARM64 Cross-Compile)
+        if: matrix.target == 'linux-arm64'
+        run: |
+          make clean
+          make cross-linux-arm64 CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++"
+          mv game-linux-arm64 game
+          tar -czvf game-linux-arm64.tar.gz game
+
+      # ------------------------------------------------------------------------
+      # macOS Universal Build (ARM64 + x86_64)
+      # ------------------------------------------------------------------------
+      - name: Build (macOS Universal)
+        if: matrix.target == 'macos-universal'
+        run: |
+          make clean
+          make macos-universal
+          mv game-macos-universal game
+          tar -czvf game-macos-universal.tar.gz game
+
+      # ------------------------------------------------------------------------
+      # Windows x86_64 Build (using MSYS2 & MinGW-w64 PDCurses)
+      # ------------------------------------------------------------------------
+      - name: Setup MSYS2 (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pdcurses
+            make
+            zip
+
+      - name: Build (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        shell: msys2 {0}
+        run: |
+          make clean
+          make CXXFLAGS="-std=c++20 -O2 -Wall -static -static-libgcc -static-libstdc++"
+          zip game-windows-x86_64.zip game.exe
+
+      # ------------------------------------------------------------------------
+      # Upload Artifact
+      # ------------------------------------------------------------------------
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ matrix.asset_path }}
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Display downloaded assets
+        run: ls -la release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: Release ${{ github.event.inputs.tag_name || github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

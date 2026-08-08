@@ -1,0 +1,73 @@
+name: CI Build Verification
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: CI (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            os: ubuntu-latest
+          - target: linux-arm64
+            os: ubuntu-latest
+          - target: macos-universal
+            os: macos-latest
+          - target: windows-x86_64
+            os: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux x86_64)
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev libncursesw5-dev
+
+      - name: Build (Linux x86_64)
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          make clean
+          make
+
+      - name: Install dependencies & Cross-compile (Linux ARM64)
+        if: matrix.target == 'linux-arm64'
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libncurses-dev:arm64 libncursesw5-dev:arm64
+          make clean
+          make cross-linux-arm64
+
+      - name: Build (macOS Universal)
+        if: matrix.target == 'macos-universal'
+        run: |
+          make clean
+          make macos-universal
+
+      - name: Setup MSYS2 & Build (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pdcurses
+            make
+
+      - name: Build (Windows x86_64)
+        if: matrix.target == 'windows-x86_64'
+        shell: msys2 {0}
+        run: |
+          make clean
+          make
