@@ -18,10 +18,7 @@ $(TARGET): $(SRC)
 run: $(TARGET)
 	./$(TARGET)
 
-# Cross-compilation targets
-cross-linux-arm64:
-	$(MAKE) CXX=aarch64-linux-gnu-g++ TARGET=game-linux-arm64 LDLIBS="-lncurses"
-
+# Cross-compilation / multi-arch targets
 cross-win64:
 	$(MAKE) CXX=x86_64-w64-mingw32-g++ TARGET=game-windows-x86_64.exe LDLIBS="-lpdcurses"
 
@@ -31,4 +28,4 @@ macos-universal:
 clean:
 	rm -f game game.exe game-* *.o
 
-.PHONY: run clean cross-linux-arm64 cross-win64 macos-universal
+.PHONY: run clean cross-win64 macos-universal

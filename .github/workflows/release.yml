@@ -27,11 +27,6 @@ jobs:
             artifact_name: game-linux-x86_64.tar.gz
             asset_path: game-linux-x86_64.tar.gz
 
-          - target: linux-arm64
-            os: ubuntu-latest
-            artifact_name: game-linux-arm64.tar.gz
-            asset_path: game-linux-arm64.tar.gz
-
           - target: macos-universal
             os: macos-latest
             artifact_name: game-macos-universal.tar.gz
@@ -61,24 +56,6 @@ jobs:
           make clean
           make CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++" TARGET=game
           tar -czvf game-linux-x86_64.tar.gz game
-
-      # ------------------------------------------------------------------------
-      # Linux ARM64 Cross-Compilation Build
-      # ------------------------------------------------------------------------
-      - name: Install dependencies (Linux ARM64 Cross-Compile)
-        if: matrix.target == 'linux-arm64'
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libncurses-dev:arm64 libncursesw5-dev:arm64
-
-      - name: Build (Linux ARM64 Cross-Compile)
-        if: matrix.target == 'linux-arm64'
-        run: |
-          make clean
-          make cross-linux-arm64 CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++"
-          mv game-linux-arm64 game
-          tar -czvf game-linux-arm64.tar.gz game
 
       # ------------------------------------------------------------------------
       # macOS Universal Build (ARM64 + x86_64)

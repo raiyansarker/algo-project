@@ -16,8 +16,6 @@ jobs:
         include:
           - target: linux-x86_64
             os: ubuntu-latest
-          - target: linux-arm64
-            os: ubuntu-latest
           - target: macos-universal
             os: macos-latest
           - target: windows-x86_64
@@ -38,15 +36,6 @@ jobs:
         run: |
           make clean
           make
-
-      - name: Install dependencies & Cross-compile (Linux ARM64)
-        if: matrix.target == 'linux-arm64'
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libncurses-dev:arm64 libncursesw5-dev:arm64
-          make clean
-          make cross-linux-arm64
 
       - name: Build (macOS Universal)
         if: matrix.target == 'macos-universal'
