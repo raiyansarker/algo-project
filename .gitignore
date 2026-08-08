@@ -1,0 +1,21 @@
+# Binaries & Executables
+game
+game.exe
+test
+test.exe
+
+# Object & Library files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+
+# Build directories
+build/
+bin/
+
+# OS specific files
+.DS_Store
+Thumbs.db
