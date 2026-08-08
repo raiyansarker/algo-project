@@ -84,11 +84,11 @@ struct State {
 };
 
 State state = {
-  .optimal_score = 0,
-  .optimal_path = vector<pair<int, int>>(),
   .player_row = 0,
   .player_col = 0,
   .score = 0,
+  .optimal_score = 0,
+  .optimal_path = vector<pair<int, int>>(),
   .game_over = false,
 };
 
