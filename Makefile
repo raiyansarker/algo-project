@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall
+CXXFLAGS = -std=c++20 -O2 -Wall
 LDLIBS = -lncurses
 TARGET = game
 SRC = main.cpp
