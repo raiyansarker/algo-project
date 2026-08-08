@@ -48,13 +48,13 @@ jobs:
         if: matrix.target == 'linux-x86_64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev libncursesw5-dev
+          sudo apt-get install -y build-essential libncurses-dev
 
       - name: Build (Linux x86_64)
         if: matrix.target == 'linux-x86_64'
         run: |
           make clean
-          make CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++" TARGET=game
+          make CXXFLAGS="-std=c++20 -O2 -Wall -static-libgcc -static-libstdc++"
           tar -czvf game-linux-x86_64.tar.gz game
 
       # ------------------------------------------------------------------------
@@ -69,7 +69,7 @@ jobs:
           tar -czvf game-macos-universal.tar.gz game
 
       # ------------------------------------------------------------------------
-      # Windows x86_64 Build (using MSYS2 & MinGW-w64 PDCurses)
+      # Windows x86_64 Build (using MSYS2 & MinGW-w64 ncurses)
       # ------------------------------------------------------------------------
       - name: Setup MSYS2 (Windows x86_64)
         if: matrix.target == 'windows-x86_64'
@@ -79,7 +79,7 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-pdcurses
+            mingw-w64-x86_64-ncurses
             make
             zip
 
@@ -88,7 +88,7 @@ jobs:
         shell: msys2 {0}
         run: |
           make clean
-          make CXXFLAGS="-std=c++20 -O2 -Wall -static -static-libgcc -static-libstdc++"
+          make TARGET=game.exe CXXFLAGS="-std=c++20 -O2 -Wall -DNCURSES_STATIC -static-libgcc -static-libstdc++"
           zip game-windows-x86_64.zip game.exe
 
       # ------------------------------------------------------------------------
