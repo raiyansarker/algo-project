@@ -373,11 +373,6 @@ int main() {
         state.game_over = true;
         render();
 
-        napms(500);
-
-        /**
-         * TODO: animate optimal path
-         */
         animate_path();
       }
     }
