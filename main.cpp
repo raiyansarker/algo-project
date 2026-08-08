@@ -2,7 +2,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
-#include <ncurses.h>
+#include <string>
+#include <algorithm>
+#include <ctime>
+
+#ifdef _WIN32
+#  include <curses.h>
+#else
+#  include <ncurses.h>
+#endif
 
 using namespace std;
 
