@@ -54,8 +54,6 @@ void generate_grid() {
       grid[i][j].isObstacle = false,
       grid[i][j].isVisited = false;
 
-      if (i == 0 && j == 0 && i == GRID_ROWS - 1 && j == GRID_COLS - 1) continue;
-
       bool is_start = (i == 0 && j == 0);
       bool is_start_neighbor = (i == 0 && j == 1) || (i == 1 && j == 0);
       bool is_end = (i == GRID_ROWS - 1 && j == GRID_COLS - 1);
@@ -128,15 +126,9 @@ void render() {
    */
   char score_buf[128];
 
-  if (!state.game_over) {
-    snprintf(score_buf, sizeof(score_buf), "Your Score: %d", state.score);
+  snprintf(score_buf, sizeof(score_buf), "Your Score : %d", state.score);
 
-    center_print(row_cursor, score_buf);
-  } else {
-    snprintf(score_buf, sizeof(score_buf), "Your Score : %d", state.score);
-
-    center_print(row_cursor, score_buf);
-  }
+  center_print(row_cursor, score_buf);
 
   /**
    * print grid
